@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F7885F182F186E2600C956C3 /* /Users/kartikarora/Workspace/Personal/rocketflag-kmp-sdk/sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7885F172F186E2600C956C3 /* /Users/kartikarora/Workspace/Personal/rocketflag-kmp-sdk/sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework */; };
+		F7885F182F186E2600C956C3 /* RocketFlagSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7885F172F186E2600C956C3 /* RocketFlagSdk.xcframework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		F7885F072F186B7300C956C3 /* RocketFladSDKDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RocketFladSDKDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F7885F172F186E2600C956C3 /* /Users/kartikarora/Workspace/Personal/rocketflag-kmp-sdk/sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = "/Users/kartikarora/Workspace/Personal/rocketflag-kmp-sdk/sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework"; sourceTree = "<group>"; };
+		F7885F172F186E2600C956C3 /* RocketFlagSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = ../sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -28,7 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F7885F182F186E2600C956C3 /* /Users/kartikarora/Workspace/Personal/rocketflag-kmp-sdk/sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework in Frameworks */,
+				F7885F182F186E2600C956C3 /* RocketFlagSdk.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -111,7 +111,7 @@
 			projectReferences = (
 				{
 					ProductGroup = F7885F192F186E2600C956C3 /* Products */;
-					ProjectRef = F7885F172F186E2600C956C3 /* /Users/kartikarora/Workspace/Personal/rocketflag-kmp-sdk/sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework */;
+					ProjectRef = F7885F172F186E2600C956C3 /* RocketFlagSdk.xcframework */;
 				},
 			);
 			projectRoot = "";

@@ -1,0 +1,44 @@
+name: Build & Verify (Main)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build SDK & Android Demo
+        run: ./gradlew :sdk:assembleDebug :androidDemo:assembleDebug
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build SDK & iOS Demo
+        run: |
+          ./gradlew :sdk:assembleRocketFlagSdkXCFramework
+          xcodebuild -project iosDemo/RocketFladSDKDemo.xcodeproj -scheme RocketFladSDKDemo -configuration Debug -sdk iphonesimulator build

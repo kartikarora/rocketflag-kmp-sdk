@@ -68,7 +68,7 @@ android {
 mavenPublishing {
     coordinates(
         "me.kartikarora.rocketflag",
-        "mobileSdk",
+        "android",
         libs.versions.rocketflagSdk.get()
     )
 

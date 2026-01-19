@@ -1,10 +1,8 @@
-name: Release
+name: Release Pipeline
 
 on:
   push:
-    branches: [ main, release ]
-  pull_request:
-    branches: [ main ]
+    branches: [ 'release/*' ]
 
 jobs:
   build-android:
@@ -22,8 +20,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build Android Library
-        run: ./gradlew :sdk:assembleRelease
+      - name: Build Library and Demo
+        run: ./gradlew :sdk:assembleRelease :androidDemo:assembleRelease
 
       - name: Upload Android AAR
         uses: actions/upload-artifact@v6
@@ -46,8 +44,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build XCFramework
-        run: ./gradlew :sdk:assembleRocketFlagSdkXCFramework
+      - name: Build XCFramework and Demo
+        run: |
+          ./gradlew :sdk:assembleRocketFlagSdkXCFramework
+          xcodebuild -project iosDemo/RocketFladSDKDemo.xcodeproj -scheme RocketFladSDKDemo -configuration Release -sdk iphoneos build
 
       - name: Upload XCFramework
         uses: actions/upload-artifact@v6
@@ -56,7 +56,6 @@ jobs:
           path: sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework
 
   publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
     needs: [build-android, build-ios]
     runs-on: macos-latest
     steps:
@@ -136,4 +135,4 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add swift-package/Package.swift
           git commit -m "Update Package.swift for version ${{ steps.get_version.outputs.version }}" || echo "No changes to commit"
-          git push origin release
+          git push origin ${{ github.ref_name }}
