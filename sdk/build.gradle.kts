@@ -72,7 +72,6 @@ mavenPublishing {
         libs.versions.rocketflagSdk.get()
     )
 
-
     pom {
         name.set("RocketFlag SDK for Kotlin Multiplatform")
         description.set("Official Kotlin SDK for RocketFlag feature flagging service")
@@ -100,8 +99,4 @@ mavenPublishing {
             }
         }
     }
-}
-
-signing {
-    useGpgCmd()
 }
