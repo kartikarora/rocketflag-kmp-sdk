@@ -20,8 +20,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build Library and Demo
-        run: ./gradlew :sdk:assembleRelease :androidDemo:assembleRelease
+      - name: Build Library
+        run: ./gradlew :sdk:assembleRelease
 
       - name: Upload Android AAR
         uses: actions/upload-artifact@v6
@@ -44,10 +44,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build XCFramework and Demo
-        run: |
-          ./gradlew :sdk:assembleRocketFlagSdkXCFramework
-          xcodebuild -project iosDemo/RocketFladSDKDemo.xcodeproj -scheme RocketFladSDKDemo -configuration Release -sdk iphoneos build
+      - name: Build XCFramework
+        run: ./gradlew :sdk:assembleRocketFlagSdkXCFramework
 
       - name: Upload XCFramework
         uses: actions/upload-artifact@v6
