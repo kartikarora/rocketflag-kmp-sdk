@@ -5,7 +5,21 @@ on:
     branches: [ 'release/*' ]
 
 jobs:
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Get Version
+        id: get_version
+        run: |
+          VERSION=$(grep 'rocketflagSdk =' gradle/libs.versions.toml | cut -d'"' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
   build-android:
+    needs: [get-version]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,6 +44,7 @@ jobs:
           path: sdk/build/outputs/aar/sdk-release.aar
 
   build-ios:
+    needs: [get-version]
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -54,7 +69,7 @@ jobs:
           path: sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework
 
   publish-android:
-    needs: [build-android]
+    needs: [build-android, get-version]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -80,12 +95,6 @@ jobs:
       - name: Rename AAR
         run: mv sdk-release.aar rocketflag-sdk-release.aar
 
-      - name: Get Version
-        id: get_version
-        run: |
-          VERSION=$(grep 'rocketflagSdk =' gradle/libs.versions.toml | cut -d'"' -f2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Publish to Maven Central
         run: ./gradlew publishAllPublicationsToMavenCentral --no-configuration-cache
         env:
@@ -94,17 +103,8 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          generate_release_notes: true
-          files: rocketflag-sdk-release.aar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   publish-ios:
-    needs: [build-ios]
+    needs: [build-ios, get-version]
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -125,24 +125,9 @@ jobs:
         id: checksum
         run: echo "checksum=$(shasum -a 256 RocketFlagSdk.xcframework.zip | awk '{ print $1 }')" >> $GITHUB_OUTPUT
 
-      - name: Get Version
-        id: get_version
-        run: |
-          VERSION=$(grep 'rocketflagSdk =' gradle/libs.versions.toml | cut -d'"' -f2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          generate_release_notes: true
-          files: RocketFlagSdk.xcframework.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Update Package.swift
         run: |
-          VERSION=${{ steps.get_version.outputs.version }}
+          VERSION=${{ needs.get-version.outputs.version }}
           CHECKSUM=${{ steps.checksum.outputs.checksum }}
           
           # Update placeholders in Package.swift
@@ -154,5 +139,47 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add swift-package/Package.swift
-          git commit -m "Update Package.swift for version ${{ steps.get_version.outputs.version }}" || echo "No changes to commit"
+          git commit -m "Update Package.swift for version ${{ needs.get-version.outputs.version }}" || echo "No changes to commit"
           git push origin ${{ github.ref_name }}
+
+      - name: Upload Zipped XCFramework
+        uses: actions/upload-artifact@v6
+        with:
+          name: RocketFlagSdk.xcframework.zip
+          path: RocketFlagSdk.xcframework.zip
+
+  github-release:
+    needs: [publish-android, publish-ios, get-version]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download Android AAR
+        uses: actions/download-artifact@v7
+        with:
+          name: rocketflag-sdk-release-aar
+          path: .
+
+      - name: Download iOS XCFramework Zip
+        uses: actions/download-artifact@v7
+        with:
+          name: RocketFlagSdk.xcframework.zip
+          path: .
+
+      - name: Rename Artifacts
+        run: |
+          VERSION=${{ needs.get-version.outputs.version }}
+          mv sdk-release.aar rocketflag-sdk-release-$VERSION.aar
+          mv RocketFlagSdk.xcframework.zip RocketFlagSdk-$VERSION.xcframework.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.get-version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            rocketflag-sdk-release-${{ needs.get-version.outputs.version }}.aar
+            RocketFlagSdk-${{ needs.get-version.outputs.version }}.xcframework.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
