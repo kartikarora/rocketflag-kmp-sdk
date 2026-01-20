@@ -53,9 +53,9 @@ jobs:
           name: RocketFlagSdk.xcframework
           path: sdk/build/XCFrameworks/release/RocketFlagSdk.xcframework
 
-  publish:
-    needs: [build-android, build-ios]
-    runs-on: macos-latest
+  publish-android:
+    needs: [build-android]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -80,19 +80,6 @@ jobs:
       - name: Rename AAR
         run: mv sdk-release.aar rocketflag-sdk-release.aar
 
-      - name: Download XCFramework
-        uses: actions/download-artifact@v7
-        with:
-          name: RocketFlagSdk.xcframework
-          path: RocketFlagSdk.xcframework
-
-      - name: Zip XCFramework
-        run: zip -r RocketFlagSdk.xcframework.zip RocketFlagSdk.xcframework
-
-      - name: Calculate Checksum
-        id: checksum
-        run: echo "checksum=$(shasum -a 256 RocketFlagSdk.xcframework.zip | awk '{ print $1 }')" >> $GITHUB_OUTPUT
-
       - name: Get Version
         id: get_version
         run: |
@@ -112,9 +99,44 @@ jobs:
         with:
           tag_name: ${{ steps.get_version.outputs.version }}
           generate_release_notes: true
-          files: |
-            RocketFlagSdk.xcframework.zip
-            rocketflag-sdk-release.aar
+          files: rocketflag-sdk-release.aar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-ios:
+    needs: [build-ios]
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download XCFramework
+        uses: actions/download-artifact@v7
+        with:
+          name: RocketFlagSdk.xcframework
+          path: RocketFlagSdk.xcframework
+
+      - name: Zip XCFramework
+        run: zip -r RocketFlagSdk.xcframework.zip RocketFlagSdk.xcframework
+
+      - name: Calculate Checksum
+        id: checksum
+        run: echo "checksum=$(shasum -a 256 RocketFlagSdk.xcframework.zip | awk '{ print $1 }')" >> $GITHUB_OUTPUT
+
+      - name: Get Version
+        id: get_version
+        run: |
+          VERSION=$(grep 'rocketflagSdk =' gradle/libs.versions.toml | cut -d'"' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          generate_release_notes: true
+          files: RocketFlagSdk.xcframework.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
